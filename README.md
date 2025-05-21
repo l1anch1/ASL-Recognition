@@ -8,11 +8,16 @@ This project implements American Sign Language (ASL) recognition using deep lear
 ## Features
 - ASL recognition from images
 - Two model architectures: CNN and Liquid Neural Network
-- Complete data processing pipeline
-- Training and evaluation capabilities
 - Model performance visualization tools
-- Flexible command-line interface
+- Both models can achieve an accuracy of over 99.8% on the ASL dataset with appropriate training.
 
+
+## Dataset Preparation
+This project uses an American Sign Language (ASL) letter image dataset. Each image is a hand sign corresponding to a specific letter.
+
+1. Download the dataset: [ASL Alphabet Dataset on Kaggle ](https://www.kaggle.com/datasets/grassknoted/asl-alphabet)
+2. Create a folder named `dataset/` in the root directory
+3. Place data folders `asl_alphabet_train/` and `asl_alphabet_test/` inside the dataset folder you just created
 
 ## Dependencies
 
@@ -26,6 +31,7 @@ This project implements American Sign Language (ASL) recognition using deep lear
 ## Project Structure
 ```
 ASL-Recognition
+├─ dataset/
 ├─ docs
 │  └─ model_structure.txt
 ├─ main.py
@@ -99,8 +105,8 @@ python main.py --visualize-samples
 ## Model Outputs
 After training, models are saved as:
 
-- CNN model:`output/asl_cnn_model.pth`
-- Liquid Neural Network:`output/asl_liquid_model.pth`
+- CNN model: `output/asl_cnn_model.pth`
+- Liquid Neural Network: `output/asl_liquid_model.pth`
 
 ## Performance Visualization
 The training script automatically generates visualization charts for:
