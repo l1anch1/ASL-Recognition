@@ -4,9 +4,13 @@ import torch
 import torch.nn as nn
 import os
 import sys
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from src.config import NUM_CLASSES, TORCHINFO
+
+sys.path.append(
+    os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+)
+from src.config import NUM_CLASSES, TORCHINFO, CNN_DROPOUT
 from torchinfo import summary
+
 
 class cnnNet(nn.Module):
     """ASL手语识别CNN模型"""
@@ -25,7 +29,7 @@ class cnnNet(nn.Module):
         self.relu2 = nn.ReLU()
         self.pool2 = nn.MaxPool2d(kernel_size=2)
         self.bn2 = nn.BatchNorm2d(128)
-        self.dropout1 = nn.Dropout(0.2)
+        self.dropout1 = nn.Dropout(CNN_DROPOUT)
 
         # Layer 3
         self.conv3 = nn.Conv2d(128, 256, kernel_size=3, padding=1)
@@ -68,7 +72,8 @@ class cnnNet(nn.Module):
         x = self.fc2(x)
 
         return x
-    
+
+
 if TORCHINFO:
     # 打印模型结构
     print("模型结构:")

@@ -7,8 +7,11 @@ import torch.nn as nn
 import numpy as np
 from torchdyn.models import NeuralODE
 from torchinfo import summary
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from src.config import TORCHINFO
+
+sys.path.append(
+    os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+)
+from src.config import TORCHINFO, LIQUID_SOLVER
 
 
 class LiquidCNN(nn.Module):
@@ -45,7 +48,7 @@ class LiquidCNN(nn.Module):
                 nn.Linear(self.feature_dim, 4096),
                 nn.Tanh(),
             ),
-            solver="dopri5",
+            solver=LIQUID_SOLVER,
             return_t_eval=False,
         )
 
@@ -57,10 +60,10 @@ class LiquidCNN(nn.Module):
         x = x.view(x.size(0), -1)  # 展平
         x = self.dynamics(x)[-1]  # 取最终状态
         return self.classifier(x)
-    
+
 
 if TORCHINFO:
     # 打印模型结构
-    print("模型结构:")   
+    print("模型结构:")
     model = LiquidCNN()
     summary(model, input_size=(1, 3, 32, 32))
