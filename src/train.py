@@ -4,6 +4,8 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.optim.lr_scheduler import CosineAnnealingLR, ReduceLROnPlateau
+import time
+import functools
 
 from src.config import (
     EPOCHS, CNN_LEARNING_RATE, LIQUID_LEARNING_RATE, VIT_LEARNING_RATE,
@@ -11,7 +13,27 @@ from src.config import (
     EARLY_STOPPING_PATIENCE, OPTIMIZER_TYPE
 )
 
+def training_time_logger(func):
+    """一个记录并打印函数执行时间的装饰器，并将时间添加到返回的 history 对象中。"""
+    @functools.wraps(func) # 保留原始函数的元数据
+    def wrapper(*args, **kwargs):
+        start_time = time.time()
+        # 调用原始函数 (train_model)
+        model, history = func(*args, **kwargs) 
+        end_time = time.time()
+        
+        total_training_time = end_time - start_time
+        print(f"Total training time: {total_training_time:.2f} seconds")
+        
+        if isinstance(history, dict):
+            history["total_training_time_seconds"] = total_training_time
+        else:
+            print("Warning: Could not add training time to history as it's not a dictionary.")
+            
+        return model, history
+    return wrapper
 
+@training_time_logger 
 def train_model(model, train_loader, val_loader, device, model_type="cnn"):
 
     # 设置损失函数
@@ -38,7 +60,7 @@ def train_model(model, train_loader, val_loader, device, model_type="cnn"):
     elif OPTIMIZER_TYPE.lower() == "adamw":
         optimizer = optim.AdamW(model.parameters(), lr=lr, weight_decay=weight_decay_value)
     else:
-        optimizer = optim.Adam(model.parameters(), lr=lr, weight_decay=weight_decay_value)
+        optimizer = optim.Adam(model.parameters(), lr=lr, weight_decay=weight_decay_value) # 默认使用 Adam
     
     # 配置学习率调度器
     scheduler = None
@@ -53,11 +75,12 @@ def train_model(model, train_loader, val_loader, device, model_type="cnn"):
     patience_counter = 0
     best_model_state = None
     
-    # 训练历史记录
-    history = {"train_loss": [], "train_acc": [], "val_loss": [], "val_acc": []}
+    history = {"train_loss": [], "train_acc": [], "val_loss": [], "val_acc": [], "epoch_time": [] }
     
     # 训练循环
     for epoch in range(EPOCHS):
+
+        epoch_start_time = time.time()
         # 训练阶段
         model.train()
         running_loss = 0.0
@@ -67,24 +90,17 @@ def train_model(model, train_loader, val_loader, device, model_type="cnn"):
         for inputs, labels in train_loader:
             inputs, labels = inputs.to(device), labels.to(device)
             
-            # 清零梯度
             optimizer.zero_grad()
-            
-            # 前向传播
             outputs = model(inputs)
             loss = criterion(outputs, labels.long())
-            
-            # 反向传播和优化
             loss.backward()
             optimizer.step()
             
-            # 统计数据
             running_loss += loss.item()
             _, predicted = torch.max(outputs.data, 1)
             total += labels.size(0)
             correct += (predicted == labels).sum().item()
         
-        # 计算训练指标
         train_loss = running_loss / len(train_loader)
         train_acc = 100.0 * correct / total
         
@@ -105,17 +121,19 @@ def train_model(model, train_loader, val_loader, device, model_type="cnn"):
                 val_total += labels.size(0)
                 val_correct += (predicted == labels).sum().item()
         
-        # 计算验证指标
         val_loss = val_running_loss / len(val_loader)
         val_acc = 100.0 * val_correct / val_total
+
+        # 计算本轮训练时间
+        epoch_end_time = time.time()
+        epoch_time = epoch_end_time - epoch_start_time
         
-        # 保存历史记录
         history["train_loss"].append(train_loss)
         history["train_acc"].append(train_acc)
         history["val_loss"].append(val_loss)
         history["val_acc"].append(val_acc)
+        history["epoch_time"].append(epoch_time)
         
-        # 学习率调度器步进
         if scheduler is not None:
             if SCHEDULER_TYPE == "plateau":
                 scheduler.step(val_loss)
@@ -124,32 +142,29 @@ def train_model(model, train_loader, val_loader, device, model_type="cnn"):
             current_lr = optimizer.param_groups[0]['lr']
             print(f"Current learning rate: {current_lr:.2e}")
         
-        # 打印进度
         print(
             f"Epoch {epoch+1}/{EPOCHS}, "
             f"Train Loss: {train_loss:.4f}, Train Acc: {train_acc:.2f}%, "
-            f"Val Loss: {val_loss:.4f}, Val Acc: {val_acc:.2f}%"
+            f"Val Loss: {val_loss:.4f}, Val Acc: {val_acc:.2f}, %"
+            f"Time: {epoch_time:.2f}s"
         )
         
-        # 早停检查
         if EARLY_STOPPING:
             if val_loss < best_val_loss:
                 best_val_loss = val_loss
                 patience_counter = 0
-                # 保存最佳模型状态
                 best_model_state = model.state_dict().copy()
             else:
                 patience_counter += 1
                 
             if patience_counter >= EARLY_STOPPING_PATIENCE:
                 print(f"Early stopping triggered after {epoch+1} epochs")
-                # 恢复到最佳模型状态
                 if best_model_state:
                     model.load_state_dict(best_model_state)
                 break
     
-    # 如果使用了早停且有最佳模型状态，确保返回的是最佳模型
     if EARLY_STOPPING and best_model_state and patience_counter >= EARLY_STOPPING_PATIENCE:
         model.load_state_dict(best_model_state)
     
     return model, history
+

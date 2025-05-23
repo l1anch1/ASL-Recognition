@@ -9,7 +9,6 @@ from torchvision import transforms
 from sklearn.model_selection import train_test_split
 
 from src.config import (
-    TRAIN_DIR,
     BATCH_SIZE,
     TEST_SIZE,
     VAL_SIZE,
@@ -129,7 +128,6 @@ def create_data_loaders(X, y, with_validation=True):
 
         return train_loader, val_loader, test_loader
     else:
-        # 创建训练加载器（用于液态网络）
         train_dataset = ASLDataset(X_temp, y_temp, transform)
         train_loader = DataLoader(
             train_dataset,

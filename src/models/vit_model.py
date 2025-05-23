@@ -2,21 +2,18 @@
 
 import torch
 import torch.nn as nn
-import numpy as np
-from torchinfo import summary
 import os
 import sys
 
 sys.path.append(
     os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 )
-from src.config import TORCHINFO
-
+from src.config import VIT_NUM_HEADS, VIT_PATCH_SIZE, VIT_EMBED_DIM, VIT_DEPTH, NUM_CLASSES
 
 class PatchEmbedding(nn.Module):
     """将图像分割成patches并进行线性嵌入"""
 
-    def __init__(self, img_size=32, patch_size=8, in_channels=3, embed_dim=768):
+    def __init__(self, img_size=32, patch_size=4, in_channels=3, embed_dim=768):
         super().__init__()
         self.img_size = img_size
         self.patch_size = patch_size
@@ -48,6 +45,9 @@ class MultiHeadAttention(nn.Module):
         self.attn_dropout = nn.Dropout(dropout)
         self.proj = nn.Linear(embed_dim, embed_dim)
         self.proj_dropout = nn.Dropout(dropout)
+        
+        # 用于存储注意力权重以便可视化
+        self.attention_weights = None
 
     def forward(self, x):
         """x: (B, N, embed_dim)"""
@@ -64,6 +64,10 @@ class MultiHeadAttention(nn.Module):
         # 计算注意力分数
         attn = (q @ k.transpose(-2, -1)) * (self.head_dim**-0.5)  # (B, H, N, N)
         attn = attn.softmax(dim=-1)
+        
+        # 保存注意力权重以便可视化
+        self.attention_weights = attn.detach()
+        
         attn = self.attn_dropout(attn)
 
         # 应用注意力权重
@@ -119,12 +123,12 @@ class ViTNet(nn.Module):
     def __init__(
         self,
         img_size=32,
-        patch_size=8,
+        patch_size=VIT_PATCH_SIZE,
         in_channels=3,
-        num_classes=29,
-        embed_dim=384,
-        depth=8,
-        num_heads=6,
+        num_classes=NUM_CLASSES,
+        embed_dim=VIT_EMBED_DIM,
+        depth=VIT_DEPTH,
+        num_heads=VIT_NUM_HEADS,
         mlp_ratio=4.0,
         dropout=0.1,
     ):
@@ -138,6 +142,8 @@ class ViTNet(nn.Module):
             embed_dim=embed_dim,
         )
         num_patches = self.patch_embed.n_patches
+        self.patch_size = patch_size
+        self.img_size = img_size
 
         # 添加可学习的分类token ([CLS])
         self.cls_token = nn.Parameter(torch.zeros(1, 1, embed_dim))
@@ -211,10 +217,7 @@ class ViTNet(nn.Module):
         # 分类头
         x = self.head(x)  # (B, num_classes)
         return x
-
-
-if TORCHINFO:
-    # 打印模型结构
-    print("模型结构:")
-    model = ViTNet(num_classes=29)  # 假设29个ASL类别
-    summary(model, input_size=(1, 3, 32, 32))
+    
+    def get_attention_weights(self):
+        """获取最后一个transformer块的注意力权重"""
+        return self.blocks[-1].attn.attention_weights

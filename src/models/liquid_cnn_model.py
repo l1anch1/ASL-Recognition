@@ -6,12 +6,11 @@ import torch
 import torch.nn as nn
 import numpy as np
 from torchdyn.models import NeuralODE
-from torchinfo import summary
 
 sys.path.append(
     os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 )
-from src.config import TORCHINFO, LIQUID_SOLVER
+from src.config import LIQUID_SOLVER
 
 
 class LiquidCNN(nn.Module):
@@ -62,8 +61,3 @@ class LiquidCNN(nn.Module):
         return self.classifier(x)
 
 
-if TORCHINFO:
-    # 打印模型结构
-    print("模型结构:")
-    model = LiquidCNN()
-    summary(model, input_size=(1, 3, 32, 32))

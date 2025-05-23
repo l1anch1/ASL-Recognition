@@ -17,5 +17,4 @@
 .vscode/
 dataset/*
 __pycache__/ 
-asl_cnn_model.pth
-asl_liquid_model.pth
+*.pth

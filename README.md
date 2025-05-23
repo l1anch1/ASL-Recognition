@@ -1,23 +1,27 @@
 # DynamicHandSign: ASL Recognition with Neural ODEs
 
-This project implements American Sign Language (ASL) recognition using deep learning and PyTorch. It provides two neural network architectures:
+This project implements American Sign Language (ASL) recognition using deep learning and PyTorch. It provides three neural network architectures:
 
 - Standard Convolutional Neural Network (CNN)
 - Liquid Neural Network based on Neural Ordinary Differential Equations (ODEs)
+- Vision Transformer (ViT)
 
 ## Features
-- ASL recognition from images
-- Two model architectures: CNN and Liquid Neural Network
+- High accuracy ASL recognition from images
+- Three model architectures: CNN, Liquid CNN, ViT
 - Model performance visualization tools
-- Both models can achieve an accuracy of over 99.8% on the ASL dataset with appropriate training.
+- All models can achieve an accuracy of over 99% on the ASL dataset with appropriate training
 
 
 ## Dataset Preparation
-This project uses an American Sign Language (ASL) letter image dataset. Each image is a hand sign corresponding to a specific letter.
+This project uses an American Sign Language (ASL) Alphabet image dataset. Each image is a hand sign corresponding to a specific letter.
 
 1. Download the dataset: [ASL Alphabet Dataset on Kaggle ](https://www.kaggle.com/datasets/grassknoted/asl-alphabet)
 2. Create a folder named `dataset/` in the root directory
-3. Place data folders `asl_alphabet_train/` and `asl_alphabet_test/` inside the dataset folder you just created
+```bash
+mkdir dataset
+```
+3. Place data folders `asl_alphabet_train/` and `asl_alphabet_test/` inside the `dataset` folder you just created
 
 ## Dependencies
 
@@ -62,12 +66,20 @@ A standard Convolutional Neural Network with the following architecture:
 - Dropout layers for regularization
 - Fully connected layers for classification
 
-#### Liquid Neural Network
-An advanced architecture based on Neural ODEs:
+#### Liquid CNN Model
+An innovative architecture based on Neural ODEs:
 
 - CNN feature extraction front-end (similar to standard CNN)
 - Dynamic layer based on Neural ODE
 - Linear classification head
+
+#### Vision Transformer (ViT) Model
+Transformer-based architecture for image classification:
+
+- Splits images into fixed-size patches (4x4 default)
+- 6 attention heads with 384 embedding dimensions
+- 6 layers with LayerNorm and MLP blocks
+- Linear layer for final predictions
 
 
 ## Usage
@@ -78,6 +90,9 @@ python main.py
 # Train using the Liquid Neural Network
 python main.py --model liquid
 
+# Train using the ViT model
+python main.py --model vit
+
 # Force using CPU even if GPU is available
 python main.py --cpu-only
 
@@ -87,11 +102,11 @@ python main.py --visualize-samples
 
 ## Command Line Arguments
 
-| Argument              | Description                                   | Default |
-| --------------------- | --------------------------------------------- | ------- |
-| `--model`             | Choose model architecture (`cnn` or `liquid`) | `cnn`   |
-| `--cpu-only`          | Force using CPU even if GPU is available      | None    |
-| `--visualize-samples` | Visualize sample images before training       | None    |
+| Argument              | Description                                          | Default |
+| --------------------- | -----------------------------------------------------| ------- |
+| `--model`             | Choose model architecture (`cnn`, `liquid` or `vit`) | `cnn`   |
+| `--cpu-only`          | Force using CPU even if GPU is available             | None    |
+| `--visualize-samples` | Visualize sample images before training              | None    |
 
 
 ## Training Process
@@ -103,13 +118,23 @@ python main.py --visualize-samples
 - Evaluate model on test set
 
 ## Model Outputs
-After training, models are saved as:
+After training, models are saved in the `output/` directory as:
 
 - CNN model: `output/asl_cnn_model.pth`
-- Liquid Neural Network: `output/asl_liquid_model.pth`
+- Liquid CNN model: `output/asl_liquid_model.pth`
+- Vision Transformer: `output/asl_vit_model.pth`
 
 ## Performance Visualization
-The training script automatically generates visualization charts for:
-- Training and validation loss curves
-- Training and validation accuracy curves
+#### Training History Plots
+For each model, the system creates dual-panel visualizations showing:
+![alt text](output/cnn_training_history.png)
 
+- Output: `output/{model_type}_training_history.png`
+- Left Panel: Training and validation accuracy curves over epochs
+- Right Panel: Training and validation loss curves over epochs
+
+#### Vision Transformer Attention Maps
+Creates interpretable attention visualizations for ViT models showing:
+![alt text](output/vit_attention_map.png)
+- Script: `visualize_attention.py`
+- Output: `output/vit_attention_map.png`

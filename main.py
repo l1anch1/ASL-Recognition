@@ -3,14 +3,14 @@ import numpy as np
 import argparse
 import os
 
-from src.config import TRAIN_DIR, INPUT_SHAPE, CPU_THREADS, MODEL_SAVE_DIR
+from src.config import TRAIN_DIR, CLASSES, INPUT_SHAPE,  SAVE_DIR, TORCHINFO
 from src.utils.data_processing import get_data, create_data_loaders
 from src.models import get_model
-from src.train.train import train_model
-from src.utils.visualize import plot_sample_images, plot_training_history
+from train import train_model
+from src.utils.visualize import plot_sample_images, plot_training_history, visualize_vit_attention
 from src.evaluate import evaluate_model
 from src.utils.device_utils import get_device, print_device_info
-
+from torchinfo import summary
 
 
 def main():
@@ -84,6 +84,12 @@ def main():
     else:
         model = get_model(args.model, num_classes, device)
     print(model)
+
+
+    # 打印模型结构
+    if TORCHINFO:
+        print("模型结构:")
+        summary(model, input_size=(1, 3, 32, 32))
     
     # 训练模型
     trained_model, history = train_model(
@@ -95,8 +101,8 @@ def main():
     )
     
     # 确保保存目录存在
-    os.makedirs(MODEL_SAVE_DIR, exist_ok=True)
-    save_path = os.path.join(MODEL_SAVE_DIR, config["save_path"])
+    os.makedirs(SAVE_DIR, exist_ok=True)
+    save_path = os.path.join(SAVE_DIR, config["save_path"])
     
     # 保存模型
     torch.save(trained_model.state_dict(), save_path)
