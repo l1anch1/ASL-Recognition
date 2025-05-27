@@ -4,9 +4,6 @@ import matplotlib.pyplot as plt
 import os
 import numpy as np
 import torch
-from PIL import Image
-from torchvision import transforms
-import cv2
 
 from src.config import NORM_MEAN, NORM_STD, TRAIN_DIR, CLASSES, SAVE_DIR
 

@@ -16,7 +16,7 @@ from src.config import LIQUID_SOLVER
 class LiquidCNN(nn.Module):
     """液态卷积神经网络，基于Neural ODE实现"""
 
-    def __init__(self, input_shape=(3, 32, 32), n_classes=10):
+    def __init__(self, input_shape=(3, 32, 32), n_classes=29):
         super().__init__()
 
         # CNN特征提取

@@ -36,24 +36,27 @@ mkdir dataset
 ```
 ASL-Recognition
 ├─ dataset/
-├─ docs
-│  └─ model_structure.txt
 ├─ main.py
 ├─ output/
 ├─ README.md
 ├─ requirements.txt
+├─ tools/
+│  └─ gpu_test.py
+├─ scripts/
+│  ├─ noise_Test.py
+│  └─ visualize_attention.py
 └─ src
    ├─ config.py
    ├─ evaluate.py
+   ├─ train.py
    ├─ models
-   │  ├─ cnn.py
-   │  ├─ liquid_cnn.py
+   │  ├─ cnn_model.py
+   │  ├─ liquid_cnn_model.py
+   │  ├─ vit_model.py
    │  └─ __init__.py
-   ├─ train
-   │  ├─ gpu_test.py
-   │  └─ train.py
    └─ utils
       ├─ data_processing.py
+      ├─ device_utils.py
       └─ visualize.py
 ```
 ## Model Architectures
@@ -98,6 +101,12 @@ python main.py --cpu-only
 
 # Visualize sample images before training
 python main.py --visualize-samples
+
+# Visualize attention of ViT
+python scripts/visualize_attention.py
+
+# Visualize noise robustness
+python scripts/noise_test.py
 ```
 
 ## Command Line Arguments
@@ -115,7 +124,7 @@ python main.py --visualize-samples
 - Train using appropriate optimizer and loss function
 - Evaluate model performance on validation set (for standard CNN)
 - Visualize training metrics and save model
-- Evaluate model on test set
+- Evaluate model accuracy and noise robustness on test set
 
 ## Model Outputs
 After training, models are saved in the `output/` directory as:
@@ -132,6 +141,14 @@ For each model, the system creates dual-panel visualizations showing:
 - Output: `output/{model_type}_training_history.png`
 - Left Panel: Training and validation accuracy curves over epochs
 - Right Panel: Training and validation loss curves over epochs
+
+#### Noise Robustness Evaluation
+Assesses the robustness of models against various noise types (Gaussian, salt-and-pepper, and blurred images). This includes:
+
+- Functions to add noise to images.
+- An evaluation method to calculate performance metrics (accuracy, precision, recall, F1-score) under different noise scenarios.
+- Visualization of noisy samples and comparative performance against noise levels for each model.
+![alt text](output/salt_pepper_noise_comparison.png)
 
 #### Vision Transformer Attention Maps
 Creates interpretable attention visualizations for ViT models showing:
