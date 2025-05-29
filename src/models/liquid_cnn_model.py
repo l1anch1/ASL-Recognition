@@ -59,10 +59,3 @@ class LiquidCNN(nn.Module):
         x = x.view(x.size(0), -1)  # 展平
         x = self.dynamics(x)[-1]  # 取最终状态
         return self.classifier(x)
-
-    def forward_features(self, x):
-        features = []
-        for layer in self.features:
-            x = layer(x)
-            features.append(x)
-        return features

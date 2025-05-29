@@ -2,9 +2,8 @@
 import os
 import sys
 import torch
-sys.path.append(
-    os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-)
+
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from src.config import CLASSES
 from src.utils.visualize import visualize_vit_attention
 from src.models.vit_model import ViTNet  # 替换为你的模型模块导入
@@ -15,10 +14,10 @@ print(f"Using device: {device}")
 weight_path = "output/asl_vit_model.pth"
 
 if not os.path.exists(weight_path):
-	raise FileNotFoundError(f"权重文件 {weight_path} 不存在!")
+    raise FileNotFoundError(f"权重文件 {weight_path} 不存在!")
 
 
-model = ViTNet() 
+model = ViTNet()
 
 # 加载权重
 state_dict = torch.load(weight_path, map_location=device)
@@ -32,7 +31,7 @@ model.eval()
 class_names = CLASSES
 
 # 测试图像路径
-image_path = "dataset/asl_alphabet_train/asl_alphabet_train/A/A8.jpg"
+image_path = "dataset/asl_alphabet_test/asl_alphabet_test/C_test.jpg"
 
 # 调用可视化函数
 visualize_vit_attention(model, image_path, class_names, device)
