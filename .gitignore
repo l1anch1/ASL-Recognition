@@ -18,3 +18,6 @@
 dataset/*
 __pycache__/ 
 *.pth
+.DS_Store
+*.pyc
+*.pyo
